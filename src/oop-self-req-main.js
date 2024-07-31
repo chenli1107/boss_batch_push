@@ -451,7 +451,7 @@ class OperationPanel {
         this.activeSwitchBtnHandler(this.bossActiveState)
 
         // 过滤猎头
-        this.goldHunterSwitchBtn = DOMApi.createTag("div", "过滤猎头", btnCssText);
+        this.goldHunterSwitchBtn = DOMApi.createTag("div", "只投在线", btnCssText);
         DOMApi.eventListener(this.goldHunterSwitchBtn, "click", () => {
             this.goldHunterSwitchBtnHandler(!this.goldHunterState)
         })
@@ -839,11 +839,11 @@ class OperationPanel {
     goldHunterSwitchBtnHandler(isOpen) {
         this.goldHunterState = isOpen;
         if (this.goldHunterState) {
-            this.goldHunterSwitchBtn.innerText = "过滤猎头:已开启";
+            this.goldHunterSwitchBtn.innerText = "只投在线:已开启";
             this.goldHunterSwitchBtn.style.backgroundColor = "rgb(215,254,195)";
             this.goldHunterSwitchBtn.style.color = "rgb(2,180,6)";
         } else {
-            this.goldHunterSwitchBtn.innerText = "过滤猎头:已关闭";
+            this.goldHunterSwitchBtn.innerText = "只投在线:已关闭";
             this.goldHunterSwitchBtn.style.backgroundColor = "rgb(251,224,224)";
             this.goldHunterSwitchBtn.style.color = "rgb(254,61,61)";
         }
@@ -1109,6 +1109,11 @@ class BossDOMApi {
             return text.split("·")[0];
         }
         return text;
+    }
+
+    static getOnline(jobTag) {
+        let element = jobTag.querySelector(".boss-online-tag");
+        return element?true:false;
     }
 
     static getCompanyScaleRange(jobTag) {
@@ -1533,9 +1538,18 @@ class JobListPageHandler {
         let pageCompanyName = BossDOMApi.getCompanyName(jobTag);
 
         // 开启时过滤猎头
-        let filterGoldHunter = TampermonkeyApi.GmGetValue(ScriptConfig.FILTER_GOLD_HUNTER, false);
-        if (filterGoldHunter && BossDOMApi.isGoldHunter(jobTag)) {
-            logger.info("当前job被过滤：【" + jobTitle + "】 原因：过滤猎头")
+        // let filterGoldHunter = TampermonkeyApi.GmGetValue(ScriptConfig.FILTER_GOLD_HUNTER, false);
+        // if (filterGoldHunter && BossDOMApi.isGoldHunter(jobTag)) {
+        //     logger.info("当前job被过滤：【" + jobTitle + "】 原因：过滤猎头")
+        //     return false;
+        // }
+
+        // 不满足在线
+        let onLineFlag = BossDOMApi.getOnline(jobTag);
+        let onLineConfig = TampermonkeyApi.GmGetValue(ScriptConfig.FILTER_GOLD_HUNTER, false);
+        if (onLineConfig && !onLineFlag) {
+            logger.debug("当前在线状态：" + onLineFlag)
+            logger.info("当前job被过滤：【" + jobTitle + "】 原因：不在线")
             return false;
         }
 
